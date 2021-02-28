@@ -33,12 +33,13 @@ sk_lp = {
 
 @app.route("/check-licence-plate/<licence_plates>/<date>", methods=["GET"])
 def upload_image(licence_plates, date):
-    resp = {}
+    resp = []
     for licence_plate in licence_plates.split(","):
         # TODO Fetch data rom database for given date and licence plate
-        resp[licence_plate] = {
+        resp.append({
+            "plate": licence_plate,
             "detected": licence_plate in sk_lp,
             "time": sk_lp[licence_plate] if licence_plate in sk_lp else ""
-        }
+        })
 
     return jsonify(resp)
