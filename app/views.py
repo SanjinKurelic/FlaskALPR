@@ -1,5 +1,7 @@
 from app import app
 from flask import jsonify, request
+from app import services
+from app import utils
 
 
 def error_response(message):
@@ -21,25 +23,16 @@ def upload_camera_image():
     if image.mimetype not in ["image/png", "image/jpg", "image/jpeg"]:
         return error_response("Allowed image files are in PNG or JPG format")
 
-    # TODO add OCR logic here
-    return jsonify({"message": "Image was successfully stored"})
-
-
-# TODO use database instead of hardcoded value
-sk_lp = {
-    "RI1234AB": "2020-12-01T22:45:37"
-}
+    plate = services.parse_image(image.read())
+    if plate is None:
+        return jsonify({"message": "No licence plate found", "status": 404})
+    else:
+        services.save_licence_plate(plate)
+        return jsonify({"message": f"Licence plate '{plate}' found", "status": 200})
 
 
 @app.route("/check-licence-plate/<licence_plates>/<date>", methods=["GET"])
 def upload_image(licence_plates, date):
-    resp = []
-    for licence_plate in licence_plates.split(","):
-        # TODO Fetch data rom database for given date and licence plate
-        resp.append({
-            "plate": licence_plate,
-            "detected": licence_plate in sk_lp,
-            "time": sk_lp[licence_plate] if licence_plate in sk_lp else ""
-        })
-
-    return jsonify(resp)
+    licence_plates = licence_plates.split(',')
+    date = utils.convert_iso_to_timestamp(date)
+    return jsonify(services.contains_licence_plates(licence_plates, date))
