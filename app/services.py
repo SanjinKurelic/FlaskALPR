@@ -26,7 +26,6 @@ def contains_licence_plates(licence_plates, date):
 
 
 def parse_image(image):
-    models.database.db.create_all()
     if image is None:
         return None
 
