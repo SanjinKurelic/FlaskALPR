@@ -13,22 +13,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@master
+      - uses: actions/checkout@master
 
-    - name: Set up Python version
-      uses: actions/setup-python@v1
-      with:
-        python-version: '3.8'
+      - name: Set up Python version
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.8'
 
-    - name: Build using AppService-Build
-      uses: azure/appservice-build@v2
-      with:
-        platform: python
-        platform-version: '3.8'
+      - name: Install required libraries
+        run: |
+          sudo chown -R $USER:$USER /etc/apt/sources.list
+          sudo echo "deb [trusted=yes] https://notesalexp.org/tesseract-ocr/stretch/ stretch main" >> /etc/apt/sources.list
+          sudo echo "deb [trusted=yes] http://deb.debian.org/debian stretch main" >> /etc/apt/sources.list
+          sudo apt-get update && sudo apt-get install -y libicu57 tesseract-ocr=4.1.1+git4247-97079fa3-1 libgl1-mesa-glx ffmpeg libsm6 libxext6
 
-    - name: 'Deploy to Azure Web App'
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: 'iot-api'
-        slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_d512af8a60084374ac8464a8860d33dc }}
+      - name: Build using AppService-Build
+        uses: azure/appservice-build@v2
+        with:
+          platform: python
+          platform-version: '3.8'
+
+      - name: 'Deploy to Azure Web App'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'iot-api'
+          slot-name: 'production'
+          publish-profile: ${{ secrets.AzureAppService_PublishProfile_d512af8a60084374ac8464a8860d33dc }}
